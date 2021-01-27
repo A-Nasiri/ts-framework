@@ -1,5 +1,11 @@
-import { User } from './models/User';
+import { User } from "./models/User";
 
-const user = new User({ name: 'Koreno', age: 18 });
+const user = new User({ name: "robert", age: 20 });
 
-user.save();
+console.log(user.get("name"));
+
+user.on("change", () => {
+  console.log("change detected, dom needs updates");
+});
+
+user.set({ name: "New Name" });

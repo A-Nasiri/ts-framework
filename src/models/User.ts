@@ -1,39 +1,38 @@
-import axios, { AxiosResponse } from 'axios';
+import { Eventing } from "./Eventing";
+import { Sync } from "./Sync";
+import { Attributes } from "./Attributes";
 
-interface UserProps {
-  id?: number;
-  name?: string;
-  age?: number;
+export interface UserProps {
+  id: number;
+  name: string;
+  age: number;
 }
 
+const rootUrl = "http://localhost:3000/users";
+
 export class User {
-  constructor(private data: UserProps) {}
+  public events: Eventing = new Eventing();
+  public sync: Sync<UserProps> = new Sync<UserProps>(rootUrl);
+  public attributes: Attributes<Partial<UserProps>>;
 
-  get(propName: string): string | number {
-    return this.data[propName];
+  constructor(attrs: Partial<UserProps>) {
+    this.attributes = new Attributes<Partial<UserProps>>(attrs);
   }
 
-  set(update: UserProps): void {
-    Object.assign(this.data, update);
+  get on() {
+    return this.events.on;
   }
 
-  fetch(): void {
-    axios
-      .get(`http://localhost:3000/users/${this.get('id')}`)
-      .then((response: AxiosResponse): void => {
-        this.set(response.data);
-      });
+  get trigger() {
+    return this.events.trigger;
   }
 
-  save(): void {
-    const id = this.get('id');
+  get get() {
+    return this.attributes.get;
+  }
 
-    if (id) {
-      //put
-      axios.put(`http://localhost:3000/users/${id}`, this.data);
-    } else {
-      //post
-      axios.post('http://localhost:3000/users', this.data);
-    }
+  set(update: Partial<UserProps>): void {
+    this.attributes.set(update);
+    this.events.trigger("change");
   }
 }
